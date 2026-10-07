@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="graphite">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchedSim Lens · Concurrency Visualizer Workspace</title>
+
+    <!-- Google Fonts: Newsreader (Display), IBM Plex Sans (UI), IBM Plex Mono (Code/Labels) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS Design Tokens, Base, Components, Animations, Mascot -->
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/mascot.css">
+</head>
+
+<body>
+    <!-- Accessibility Live Region for Step Narration -->
+    <div id="narration-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="app">
+        <!-- Header Strip (40px) -->
+        <header class="header-strip">
+            <div class="header-left">
+                <a href="overview.html" class="app-title" style="text-decoration: none;" title="Go to Overview Landing Page">
+                    <span>SCHEDSIM LENS</span>
+                    <span class="app-title-tag">CONCURRENCY ANALYZER</span>
+                </a>
+
+                <!-- Quiet Text Stepper -->
+                <nav class="stage-stepper" aria-label="Workflow Stages">
+                    <button class="step-item active" data-stage="01_input">01 INPUT</button>
+                    <span class="step-divider">·</span>
+                    <button class="step-item" data-stage="02_review">02 REVIEW</button>
+                    <span class="step-divider">·</span>
+                    <button class="step-item" data-stage="03_analyze">03 ANALYZE</button>
+                </nav>
+            </div>
+
+            <div class="header-right">
+                <button id="btn-app-ask-ai" class="btn btn-sm" title="Ask Prof. Pip AI any question" style="color: var(--lock-b); font-weight: 600;">
+                    💬 Ask AI Tutor
+                </button>
+
+                <a href="overview.html" class="btn btn-sm btn-text">Overview</a>
+
+                <div class="status-indicator">
+                    <span id="status-word-indicator" class="status-word">READY</span>
+                </div>
+
+                <div class="header-readout mono">
+                    <span>schedules <strong id="stat-schedules-val" class="tabular-nums">0</strong></span>
+                    <span>·</span>
+                    <span>deadlocks <strong id="stat-deadlocks-val" class="danger-val tabular-nums">0</strong></span>
+                    <span>·</span>
+                    <span>races <strong id="stat-races-val" class="danger-val tabular-nums">0</strong></span>
+                </div>
+
+                <div id="auth-status-container" style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Injected by auth.js -->
+                </div>
+
+                <button id="btn-theme-toggle" class="btn-theme-toggle" aria-label="Toggle Theme">
+                    Theme: Graphite
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dynamic Workspace -->
+        <main class="main-stage">
+
+            <!-- STAGE 01: INPUT -->
+            <section id="stage-01" class="stage-view active" data-stage-view="01_input">
+                <div class="stage-input-container">
+                    <!-- Left Column: Upload & Paste -->
+                    <div class="input-left-pane">
+                        <div class="pane-header">
+                            <span class="label-mono">INPUT PROGRAM</span>
+                            <div class="sample-buttons-row">
+                                <span class="label-mono" style="font-size: 11px;">SAMPLES:</span>
+                                <button class="btn btn-sm btn-sample" data-sample="s1">S1 Counter</button>
+                                <button class="btn btn-sm btn-sample" data-sample="s2">S2 Deadlock</button>
+                                <button class="btn btn-sm btn-sample" data-sample="s3">S3 Philosophers</button>
+                            </div>
+                        </div>
+
+                        <!-- Photo Upload Dropzone -->
+                        <div id="photo-dropzone" class="dropzone" tabindex="0" role="button"
+                            aria-label="Upload photo or diagram">
+                            <input type="file" id="photo-file-input" accept="image/*" style="display: none;" />
+                            <div class="dropzone-label">Drop photo of code / whiteboard diagram here</div>
+                            <div class="dropzone-actions">
+                                <button type="button" class="btn btn-sm" id="btn-camera-upload">Upload Image</button>
+                            </div>
+                        </div>
+
+                        <!-- Paste Code Area -->
+                        <div class="paste-code-container">
+                            <div class="pane-header" style="border-bottom: none; padding-bottom: 0;">
+                                <label for="paste-code-input" class="label-mono">OR PASTE CONCURRENT PYTHON</label>
+                            </div>
+                            <textarea id="paste-code-input" class="textarea-code"
+                                placeholder="import threading&#10;lock_a = threading.Lock()&#10;..."></textarea>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                                <button id="btn-extract-text" class="btn btn-primary">Extract Program</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Viewfinder Photo Preview -->
+                    <div class="input-right-pane">
+                        <div class="pane-header">
+                            <span class="label-mono">SOURCE PREVIEW</span>
+                        </div>
+
+                        <div class="viewfinder-container">
+                            <div class="viewfinder-bracket tl"></div>
+                            <div class="viewfinder-bracket tr"></div>
+                            <div class="viewfinder-bracket bl"></div>
+                            <div class="viewfinder-bracket br"></div>
+
+                            <div id="viewfinder-preview-content" class="viewfinder-content">
+                                <div class="viewfinder-empty">
+                                    Select a sample above, upload a photo of handwritten/printed code, or paste
+                                    concurrent Python text on the left.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STAGE 02: REVIEW -->
+            <section id="stage-02" class="stage-view" data-stage-view="02_review">
+                <div class="stage-review-container">
+                    <!-- Left: Detection outlines -->
+                    <div class="review-left-pane">
+                        <div class="pane-header">
+                            <span class="label-mono">DETECTED CODE & BOUNDING BOXES</span>
+                        </div>
+                        <div id="review-boxes-preview" class="boxes-preview-container"></div>
+                    </div>
+
+                    <!-- Right: Editable Extracted Ops -->
+                    <div class="review-right-pane">
+                        <div class="pane-header">
+                            <span class="label-mono">EXTRACTED THREAD OPERATIONS (CHECK BEFORE RUNNING)</span>
+                            <span class="label-mono">CONFIDENCE <strong id="review-confidence-val"
+                                    class="tabular-nums">0.93</strong></span>
+                        </div>
+
+                        <div id="review-confidence-banner" class="banner-notice warning" style="display: none;"></div>
+
+                        <div id="review-ops-container" class="review-table-container"></div>
+
+                        <div class="review-footer">
+                            <span class="label-mono">EDIT OPS IF EXTRACTION WAS IMPERFECT</span>
+                            <button id="btn-start-analysis" class="btn btn-primary">Analyze Schedule</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STAGE 03: ANALYZE (MAIN SCREEN) -->
+            <section id="stage-03" class="stage-view" data-stage-view="03_analyze">
+                <div class="stage-analyze-container">
+                    <!-- Left Column (32%): Code Panel & Locks Panel -->
+                    <div class="analyze-left-col">
+                        <div class="code-panel-container">
+                            <div class="panel-title-bar">
+                                <span class="label-mono">CODE</span>
+                            </div>
+                            <div id="code-viewport" class="code-editor-viewport"></div>
+                        </div>
+
+                        <div class="locks-panel-container">
+                            <div class="panel-title-bar">
+                                <span class="label-mono">LOCKS & SHARED STATE</span>
+                            </div>
+                            <div id="locks-list" class="locks-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column (68%): Timeline, Graph, Explanation, Controls -->
+                    <div class="analyze-right-col">
+                        <!-- Timeline Banner (Deadlock / Race / Verified Notice) -->
+                        <div id="timeline-banner-notice" class="banner-notice" style="display: none;"></div>
+
+                        <!-- Top: Timing Diagram -->
+                        <div class="timeline-panel-container">
+                            <div class="panel-title-bar">
+                                <span class="label-mono">TIMING DIAGRAM</span>
+                                <span class="label-mono" style="font-size: 11px;">CLICK RULER TO SCRUB · HOVER LOCK TO
+                                    HIGHLIGHT</span>
+                            </div>
+                            <div id="timeline-svg-container" class="timeline-svg-wrapper"></div>
+                        </div>
+
+                        <!-- Middle: Explanation Left & Wait-For Graph Right -->
+                        <div class="analyze-mid-row">
+                            <div class="explanation-panel">
+                                <div class="key-concept-badge">
+                                    <span class="label-mono">KEY CONCEPT:</span>
+                                    <span id="key-concept-label" class="key-concept-val">Lock Ordering</span>
+                                </div>
+                                <div id="explanation-text-body" class="explanation-text serif">
+                                    Worker 1 holds lock A and waits for B. Worker 2 holds B and waits for A. Neither can
+                                    continue.
+                                </div>
+                            </div>
+
+                            <div class="graph-panel">
+                                <div class="panel-title-bar" style="background: transparent; border: none; padding: 0;">
+                                    <span class="label-mono">WAIT-FOR GRAPH</span>
+                                    <span id="graph-cycle-label" class="graph-cycle-label"></span>
+                                </div>
+                                <div id="graph-svg-container" class="graph-svg-container"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Control Bar -->
+                        <div class="bottom-control-bar">
+                            <div class="control-bar-left">
+                                <button id="btn-reset" class="btn" title="Reset schedule (R)">Reset</button>
+                                <button id="btn-step-back" class="btn" title="Step back (Left Arrow)">Step Back</button>
+                                <button id="btn-play-pause" class="btn btn-primary"
+                                    title="Play / Pause (Space)">Play</button>
+                                <button id="btn-step-fwd" class="btn" title="Step forward (Right Arrow)">Step</button>
+                            </div>
+
+                            <div class="control-bar-center">
+                                <span id="step-counter-label" class="tabular-nums">step 0 / 0</span>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <label for="playback-speed-select" class="label-mono"
+                                        style="font-size: 11px;">SPEED:</label>
+                                    <select id="playback-speed-select" class="select-mono"
+                                        style="width: 70px; padding: 3px 6px;">
+                                        <option value="0.5">0.5x</option>
+                                        <option value="1" selected>1.0x</option>
+                                        <option value="2">2.0x</option>
+                                        <option value="4">4.0x</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="control-bar-right">
+                                <div class="schedule-tabs-container">
+                                    <button class="schedule-tab-btn active" data-tab="bad">BAD SCHEDULE</button>
+                                    <button class="schedule-tab-btn" data-tab="fixed">FIXED VERSION</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer Strip (32px) -->
+        <footer class="footer-strip">
+            <div class="footer-left">
+                <span>model: <strong id="footer-model-label">gemma-4</strong></span>
+                <span>·</span>
+                <span>backend: <strong id="footer-backend-label">gemini api</strong></span>
+            </div>
+
+            <div class="footer-right">
+                <span id="cached-notice-text" class="cached-indicator">Cached results active</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Main Visualizer Script -->
+    <script type="module" src="js/main.js"></script>
+
+    <!-- Auth Guard and Navbar User Helper -->
+    <script type="module">
+        import { auth } from './js/auth.js';
+        
+        // Guard or render user badge
+        const container = document.getElementById('auth-status-container');
+        if (auth.isAuthenticated()) {
+            const user = auth.getCurrentUser();
+            const displayName = user?.name || user?.email?.split('@')[0] || 'User';
+            if (container) {
+                container.innerHTML = `
+                    <span class="label-mono" style="font-size: 11px; color: var(--text);">👤 ${displayName}</span>
+                    <button id="btn-app-logout" class="btn btn-sm btn-text" style="font-size: 10px; padding: 2px 4px;">Log Out</button>
+                `;
+                document.getElementById('btn-app-logout')?.addEventListener('click', async () => {
+                    await auth.logout();
+                    window.location.href = 'overview.html';
+                });
+            }
+        } else {
+            if (container) {
+                container.innerHTML = `
+                    <a href="login.html" class="btn btn-sm" style="font-size: 11px; padding: 2px 6px;">Log In</a>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

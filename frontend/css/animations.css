@@ -1,0 +1,193 @@
+/* ==========================================================================
+   ANIMATION KEYFRAMES & UTILITY CLASSES
+   Calm, instrument-like: 150-400ms, cubic-bezier(.2,.8,.2,1), transform/opacity/dashoffset
+   ========================================================================== */
+
+/* Status word 6px rise */
+@keyframes statusRiseIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.anim-status-rise {
+  animation: statusRiseIn 250ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Corner brackets slide in 12px */
+.viewfinder-bracket.tl.animating {
+  transform: translate(-12px, -12px);
+}
+.viewfinder-bracket.tr.animating {
+  transform: translate(12px, -12px);
+}
+.viewfinder-bracket.bl.animating {
+  transform: translate(-12px, 12px);
+}
+.viewfinder-bracket.br.animating {
+  transform: translate(12px, 12px);
+}
+
+.viewfinder-bracket.settled {
+  transform: translate(0, 0);
+}
+
+/* Detection box fade in */
+@keyframes boxFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anim-box-fade {
+  animation: boxFadeIn 250ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Review row stagger fade */
+@keyframes rowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.anim-row-stagger {
+  animation: rowFadeIn 200ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Trace line draw animation */
+@keyframes traceDraw {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.anim-trace-draw {
+  stroke-dasharray: 100;
+  animation: traceDraw 350ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Lock bar growth */
+@keyframes lockBarGrow {
+  from {
+    transform: scaleX(0);
+    opacity: 0.5;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.anim-lock-grow {
+  transform-origin: left center;
+  animation: lockBarGrow 250ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Diagonal hatch fade */
+@keyframes hatchFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.anim-hatch-fade {
+  animation: hatchFadeIn 400ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Result rise */
+@keyframes resultRise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.anim-result-rise {
+  animation: resultRise 300ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Strikethrough draw */
+@keyframes strikethroughDraw {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.anim-strikethrough {
+  position: relative;
+}
+
+.anim-strikethrough::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 1.5px;
+  background-color: var(--muted);
+  animation: strikethroughDraw 300ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Checkmark stroke draw */
+@keyframes checkmarkDraw {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.anim-checkmark {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkmarkDraw 350ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Crossfade transitions */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* PREFERS-REDUCED-MOTION SUPPORT */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

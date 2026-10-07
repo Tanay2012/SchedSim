@@ -1,0 +1,215 @@
+{
+  "extract": {
+    "program": {
+      "language": "python",
+      "threads": [
+        {
+          "id": "T1",
+          "name": "worker_1",
+          "ops": [
+            { "line": 5, "op": "acquire", "target": "A" },
+            { "line": 6, "op": "acquire", "target": "B" },
+            { "line": 7, "op": "release", "target": "B" },
+            { "line": 7, "op": "release", "target": "A" }
+          ]
+        },
+        {
+          "id": "T2",
+          "name": "worker_2",
+          "ops": [
+            { "line": 10, "op": "acquire", "target": "B" },
+            { "line": 11, "op": "acquire", "target": "A" },
+            { "line": 12, "op": "release", "target": "A" },
+            { "line": 12, "op": "release", "target": "B" }
+          ]
+        }
+      ],
+      "locks": ["A", "B"],
+      "shared_vars": [],
+      "unsupported_constructs": [],
+      "confidence": 0.93
+    },
+    "transcription": [
+      "import threading",
+      "A, B = threading.Lock(), threading.Lock()",
+      "",
+      "def worker_1():",
+      "    with A:",
+      "        with B:",
+      "            pass",
+      "",
+      "def worker_2():",
+      "    with B:",
+      "        with A:",
+      "            pass"
+    ],
+    "detected_boxes": [
+      { "line": 5, "bbox": [0.08, 0.35, 0.45, 0.05] },
+      { "line": 6, "bbox": [0.14, 0.42, 0.45, 0.05] },
+      { "line": 10, "bbox": [0.08, 0.70, 0.45, 0.05] },
+      { "line": 11, "bbox": [0.14, 0.77, 0.45, 0.05] }
+    ]
+  },
+  "analyze": {
+    "verdict": "deadlock",
+    "schedules_checked": 1284,
+    "schedule": [
+      {
+        "step": 0,
+        "thread": "T1",
+        "op": "acquire",
+        "target": "A",
+        "line": 5,
+        "status": "ok",
+        "locks": { "A": "T1", "B": null },
+        "thread_state": { "T1": "running", "T2": "ready" }
+      },
+      {
+        "step": 1,
+        "thread": "T2",
+        "op": "acquire",
+        "target": "B",
+        "line": 10,
+        "status": "ok",
+        "locks": { "A": "T1", "B": "T2" },
+        "thread_state": { "T1": "ready", "T2": "running" }
+      },
+      {
+        "step": 2,
+        "thread": "T1",
+        "op": "acquire",
+        "target": "B",
+        "line": 6,
+        "status": "blocked",
+        "locks": { "A": "T1", "B": "T2" },
+        "thread_state": { "T1": "waiting", "T2": "ready" }
+      },
+      {
+        "step": 3,
+        "thread": "T2",
+        "op": "acquire",
+        "target": "A",
+        "line": 11,
+        "status": "blocked",
+        "locks": { "A": "T1", "B": "T2" },
+        "thread_state": { "T1": "waiting", "T2": "waiting" }
+      }
+    ],
+    "stuck": [
+      { "thread": "T1", "wants": "B", "held_by": "T2", "line": 6 },
+      { "thread": "T2", "wants": "A", "held_by": "T1", "line": 11 }
+    ],
+    "cycle": ["T1", "T2", "T1"],
+    "race": null
+  },
+  "explain": {
+    "plain_explanation": "Worker 1 holds lock A and waits for B. Worker 2 holds B and waits for A. Neither can continue.",
+    "why_it_happens": "The two threads take the same locks in opposite order.",
+    "key_concept": "Lock ordering hierarchy",
+    "fix_strategy": "lock_ordering",
+    "fixed_code": [
+      "import threading",
+      "A, B = threading.Lock(), threading.Lock()",
+      "",
+      "def worker_1():",
+      "    with A:",
+      "        with B:",
+      "            pass",
+      "",
+      "def worker_2():",
+      "    with A:",
+      "        with B:",
+      "            pass"
+    ],
+    "verified": true,
+    "fixed_analysis": {
+      "verdict": "ok",
+      "schedules_checked": 1198,
+      "schedule": [
+        {
+          "step": 0,
+          "thread": "T1",
+          "op": "acquire",
+          "target": "A",
+          "line": 5,
+          "status": "ok",
+          "locks": { "A": "T1", "B": null },
+          "thread_state": { "T1": "running", "T2": "ready" }
+        },
+        {
+          "step": 1,
+          "thread": "T1",
+          "op": "acquire",
+          "target": "B",
+          "line": 6,
+          "status": "ok",
+          "locks": { "A": "T1", "B": "T1" },
+          "thread_state": { "T1": "running", "T2": "ready" }
+        },
+        {
+          "step": 2,
+          "thread": "T1",
+          "op": "release",
+          "target": "B",
+          "line": 7,
+          "status": "ok",
+          "locks": { "A": "T1", "B": null },
+          "thread_state": { "T1": "running", "T2": "ready" }
+        },
+        {
+          "step": 3,
+          "thread": "T1",
+          "op": "release",
+          "target": "A",
+          "line": 7,
+          "status": "ok",
+          "locks": { "A": null, "B": null },
+          "thread_state": { "T1": "ready", "T2": "ready" }
+        },
+        {
+          "step": 4,
+          "thread": "T2",
+          "op": "acquire",
+          "target": "A",
+          "line": 10,
+          "status": "ok",
+          "locks": { "A": "T2", "B": null },
+          "thread_state": { "T1": "ready", "T2": "running" }
+        },
+        {
+          "step": 5,
+          "thread": "T2",
+          "op": "acquire",
+          "target": "B",
+          "line": 11,
+          "status": "ok",
+          "locks": { "A": "T2", "B": "T2" },
+          "thread_state": { "T1": "ready", "T2": "running" }
+        },
+        {
+          "step": 6,
+          "thread": "T2",
+          "op": "release",
+          "target": "B",
+          "line": 12,
+          "status": "ok",
+          "locks": { "A": "T2", "B": null },
+          "thread_state": { "T1": "ready", "T2": "running" }
+        },
+        {
+          "step": 7,
+          "thread": "T2",
+          "op": "release",
+          "target": "A",
+          "line": 12,
+          "status": "ok",
+          "locks": { "A": null, "B": null },
+          "thread_state": { "T1": "ready", "T2": "ready" }
+        }
+      ],
+      "stuck": [],
+      "cycle": null,
+      "race": null
+    }
+  }
+}

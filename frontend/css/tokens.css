@@ -1,0 +1,58 @@
+:root {
+  /* Fonts with robust fallbacks */
+  --font-display: "Newsreader", "Georgia", "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Typography scale */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-code: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+
+  /* Radius & Borders */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --border-hairline: 1px solid var(--line);
+
+  /* Lock color array variables for cycling */
+  --lock-color-0: var(--lock-a);
+  --lock-color-1: var(--lock-b);
+  --lock-color-2: var(--lock-c);
+}
+
+/* Graphite Theme (Default) */
+:root,
+:root[data-theme="graphite"] {
+  --bg: #16171a;
+  --panel: #1d1f23;
+  --line: #2c2f35;
+  --text: #e8e6e1;
+  --muted: #8c8f96;
+  --lock-a: #5fa8a0;
+  --lock-b: #d0a24e;
+  --lock-c: #c97b84;
+  --danger: #e5533d;
+  --ok: #7db38f;
+  --active-line-bg: rgba(232, 230, 225, 0.06);
+  --grid-line: rgba(232, 230, 225, 0.05);
+}
+
+/* Paper Theme */
+:root[data-theme="paper"] {
+  --bg: #f4f1ea;
+  --panel: #fbf9f4;
+  --line: #ddd7ca;
+  --text: #1e1d1a;
+  --muted: #75716a;
+  --lock-a: #2f7f77;
+  --lock-b: #a97a1e;
+  --lock-c: #a8545e;
+  --danger: #c8381f;
+  --ok: #3f8a5c;
+  --active-line-bg: rgba(30, 29, 26, 0.06);
+  --grid-line: rgba(30, 29, 26, 0.05);
+}

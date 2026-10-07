@@ -1,0 +1,298 @@
+{
+  "extract": {
+    "program": {
+      "language": "python",
+      "threads": [
+        {
+          "id": "T1",
+          "name": "philosopher_1",
+          "ops": [
+            { "line": 5, "op": "acquire", "target": "A" },
+            { "line": 6, "op": "acquire", "target": "B" },
+            { "line": 7, "op": "release", "target": "B" },
+            { "line": 7, "op": "release", "target": "A" }
+          ]
+        },
+        {
+          "id": "T2",
+          "name": "philosopher_2",
+          "ops": [
+            { "line": 10, "op": "acquire", "target": "B" },
+            { "line": 11, "op": "acquire", "target": "C" },
+            { "line": 12, "op": "release", "target": "C" },
+            { "line": 12, "op": "release", "target": "B" }
+          ]
+        },
+        {
+          "id": "T3",
+          "name": "philosopher_3",
+          "ops": [
+            { "line": 15, "op": "acquire", "target": "C" },
+            { "line": 16, "op": "acquire", "target": "A" },
+            { "line": 17, "op": "release", "target": "A" },
+            { "line": 17, "op": "release", "target": "C" }
+          ]
+        }
+      ],
+      "locks": ["A", "B", "C"],
+      "shared_vars": [],
+      "unsupported_constructs": [],
+      "confidence": 0.91
+    },
+    "transcription": [
+      "import threading",
+      "A, B, C = threading.Lock(), threading.Lock(), threading.Lock()",
+      "",
+      "def philosopher_1():",
+      "    with A:",
+      "        with B:",
+      "            pass",
+      "",
+      "def philosopher_2():",
+      "    with B:",
+      "        with C:",
+      "            pass",
+      "",
+      "def philosopher_3():",
+      "    with C:",
+      "        with A:",
+      "            pass"
+    ],
+    "detected_boxes": [
+      { "line": 5, "bbox": [0.08, 0.28, 0.45, 0.04] },
+      { "line": 6, "bbox": [0.14, 0.33, 0.45, 0.04] },
+      { "line": 10, "bbox": [0.08, 0.55, 0.45, 0.04] },
+      { "line": 11, "bbox": [0.14, 0.60, 0.45, 0.04] },
+      { "line": 15, "bbox": [0.08, 0.82, 0.45, 0.04] },
+      { "line": 16, "bbox": [0.14, 0.87, 0.45, 0.04] }
+    ]
+  },
+  "analyze": {
+    "verdict": "deadlock",
+    "schedules_checked": 2430,
+    "schedule": [
+      {
+        "step": 0,
+        "thread": "T1",
+        "op": "acquire",
+        "target": "A",
+        "line": 5,
+        "status": "ok",
+        "locks": { "A": "T1", "B": null, "C": null },
+        "thread_state": { "T1": "running", "T2": "ready", "T3": "ready" }
+      },
+      {
+        "step": 1,
+        "thread": "T2",
+        "op": "acquire",
+        "target": "B",
+        "line": 10,
+        "status": "ok",
+        "locks": { "A": "T1", "B": "T2", "C": null },
+        "thread_state": { "T1": "ready", "T2": "running", "T3": "ready" }
+      },
+      {
+        "step": 2,
+        "thread": "T3",
+        "op": "acquire",
+        "target": "C",
+        "line": 15,
+        "status": "ok",
+        "locks": { "A": "T1", "B": "T2", "C": "T3" },
+        "thread_state": { "T1": "ready", "T2": "ready", "T3": "running" }
+      },
+      {
+        "step": 3,
+        "thread": "T1",
+        "op": "acquire",
+        "target": "B",
+        "line": 6,
+        "status": "blocked",
+        "locks": { "A": "T1", "B": "T2", "C": "T3" },
+        "thread_state": { "T1": "waiting", "T2": "ready", "T3": "ready" }
+      },
+      {
+        "step": 4,
+        "thread": "T2",
+        "op": "acquire",
+        "target": "C",
+        "line": 11,
+        "status": "blocked",
+        "locks": { "A": "T1", "B": "T2", "C": "T3" },
+        "thread_state": { "T1": "waiting", "T2": "waiting", "T3": "ready" }
+      },
+      {
+        "step": 5,
+        "thread": "T3",
+        "op": "acquire",
+        "target": "A",
+        "line": 16,
+        "status": "blocked",
+        "locks": { "A": "T1", "B": "T2", "C": "T3" },
+        "thread_state": { "T1": "waiting", "T2": "waiting", "T3": "waiting" }
+      }
+    ],
+    "stuck": [
+      { "thread": "T1", "wants": "B", "held_by": "T2", "line": 6 },
+      { "thread": "T2", "wants": "C", "held_by": "T3", "line": 11 },
+      { "thread": "T3", "wants": "A", "held_by": "T1", "line": 16 }
+    ],
+    "cycle": ["T1", "T2", "T3", "T1"],
+    "race": null
+  },
+  "explain": {
+    "plain_explanation": "Each philosopher picks up their right fork and waits indefinitely for the left fork. A circular dependency forms.",
+    "why_it_happens": "Circular wait condition among 3 threads with symmetric lock acquisition.",
+    "key_concept": "Circular Wait (Dining Philosophers)",
+    "fix_strategy": "asymmetric_lock_hierarchy",
+    "fixed_code": [
+      "import threading",
+      "A, B, C = threading.Lock(), threading.Lock(), threading.Lock()",
+      "",
+      "def philosopher_1():",
+      "    with A:",
+      "        with B:",
+      "            pass",
+      "",
+      "def philosopher_2():",
+      "    with B:",
+      "        with C:",
+      "            pass",
+      "",
+      "def philosopher_3():",
+      "    with A:",
+      "        with C:",
+      "            pass"
+    ],
+    "verified": true,
+    "fixed_analysis": {
+      "verdict": "ok",
+      "schedules_checked": 2180,
+      "schedule": [
+        {
+          "step": 0,
+          "thread": "T1",
+          "op": "acquire",
+          "target": "A",
+          "line": 5,
+          "status": "ok",
+          "locks": { "A": "T1", "B": null, "C": null },
+          "thread_state": { "T1": "running", "T2": "ready", "T3": "ready" }
+        },
+        {
+          "step": 1,
+          "thread": "T1",
+          "op": "acquire",
+          "target": "B",
+          "line": 6,
+          "status": "ok",
+          "locks": { "A": "T1", "B": "T1", "C": null },
+          "thread_state": { "T1": "running", "T2": "ready", "T3": "ready" }
+        },
+        {
+          "step": 2,
+          "thread": "T1",
+          "op": "release",
+          "target": "B",
+          "line": 7,
+          "status": "ok",
+          "locks": { "A": "T1", "B": null, "C": null },
+          "thread_state": { "T1": "running", "T2": "ready", "T3": "ready" }
+        },
+        {
+          "step": 3,
+          "thread": "T1",
+          "op": "release",
+          "target": "A",
+          "line": 7,
+          "status": "ok",
+          "locks": { "A": null, "B": null, "C": null },
+          "thread_state": { "T1": "ready", "T2": "ready", "T3": "ready" }
+        },
+        {
+          "step": 4,
+          "thread": "T2",
+          "op": "acquire",
+          "target": "B",
+          "line": 10,
+          "status": "ok",
+          "locks": { "A": null, "B": "T2", "C": null },
+          "thread_state": { "T1": "ready", "T2": "running", "T3": "ready" }
+        },
+        {
+          "step": 5,
+          "thread": "T2",
+          "op": "acquire",
+          "target": "C",
+          "line": 11,
+          "status": "ok",
+          "locks": { "A": null, "B": "T2", "C": "T2" },
+          "thread_state": { "T1": "ready", "T2": "running", "T3": "ready" }
+        },
+        {
+          "step": 6,
+          "thread": "T2",
+          "op": "release",
+          "target": "C",
+          "line": 12,
+          "status": "ok",
+          "locks": { "A": null, "B": "T2", "C": null },
+          "thread_state": { "T1": "ready", "T2": "running", "T3": "ready" }
+        },
+        {
+          "step": 7,
+          "thread": "T2",
+          "op": "release",
+          "target": "B",
+          "line": 12,
+          "status": "ok",
+          "locks": { "A": null, "B": null, "C": null },
+          "thread_state": { "T1": "ready", "T2": "ready", "T3": "ready" }
+        },
+        {
+          "step": 8,
+          "thread": "T3",
+          "op": "acquire",
+          "target": "A",
+          "line": 15,
+          "status": "ok",
+          "locks": { "A": "T3", "B": null, "C": null },
+          "thread_state": { "T1": "ready", "T2": "ready", "T3": "running" }
+        },
+        {
+          "step": 9,
+          "thread": "T3",
+          "op": "acquire",
+          "target": "C",
+          "line": 16,
+          "status": "ok",
+          "locks": { "A": "T3", "B": null, "C": "T3" },
+          "thread_state": { "T1": "ready", "T2": "ready", "T3": "running" }
+        },
+        {
+          "step": 10,
+          "thread": "T3",
+          "op": "release",
+          "target": "C",
+          "line": 17,
+          "status": "ok",
+          "locks": { "A": "T3", "B": null, "C": null },
+          "thread_state": { "T1": "ready", "T2": "ready", "T3": "running" }
+        },
+        {
+          "step": 11,
+          "thread": "T3",
+          "op": "release",
+          "target": "A",
+          "line": 17,
+          "status": "ok",
+          "locks": { "A": null, "B": null, "C": null },
+          "thread_state": { "T1": "ready", "T2": "ready", "T3": "ready" }
+        }
+      ],
+      "stuck": [],
+      "cycle": null,
+      "race": null
+    }
+  }
+}

@@ -1,0 +1,740 @@
+/* ==========================================================================
+   OVERVIEW (LANDING) PAGE STYLES
+   Technical, calm, student-friendly, instrument-grade design system
+   Features floating information boxes that FREEZE on hover
+   ========================================================================== */
+
+/* Sticky Overview Navbar */
+.overview-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 52px;
+  background-color: var(--panel);
+  border-bottom: var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  backdrop-filter: blur(8px);
+}
+
+.overview-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.overview-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.overview-logo:hover {
+  color: var(--lock-a);
+}
+
+.overview-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+}
+
+.overview-nav-link {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 6px;
+  position: relative;
+  transition: color 150ms ease;
+}
+
+.overview-nav-link:hover,
+.overview-nav-link.active {
+  color: var(--text);
+}
+
+.overview-nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -16px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--lock-b);
+}
+
+.overview-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Page Container */
+.landing-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 80px 24px;
+}
+
+/* Section Shared Primitives */
+.landing-section {
+  padding: 72px 0;
+  border-bottom: var(--border-hairline);
+  scroll-margin-top: 60px;
+}
+
+.section-header {
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.section-tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lock-a);
+  margin-bottom: 8px;
+  display: inline-block;
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--panel);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.25;
+  margin-bottom: 12px;
+}
+
+.section-subtitle {
+  font-size: var(--text-base);
+  color: var(--muted);
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   FLOATING CARD ANIMATIONS & HOVER FREEZE
+   ========================================================================== */
+@keyframes floatGentleA {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes floatGentleB {
+  0%, 100% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes floatGentleC {
+  0%, 100% {
+    transform: translateY(2px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Assign floating animations to information cards */
+.step-card:nth-child(1),
+.feature-card:nth-child(1),
+.benefit-card:nth-child(1) {
+  animation: floatGentleA 5.2s ease-in-out infinite;
+}
+
+.step-card:nth-child(2),
+.feature-card:nth-child(2),
+.benefit-card:nth-child(2) {
+  animation: floatGentleB 5.8s ease-in-out infinite 0.4s;
+}
+
+.step-card:nth-child(3),
+.feature-card:nth-child(3),
+.benefit-card:nth-child(3) {
+  animation: floatGentleC 4.9s ease-in-out infinite 0.8s;
+}
+
+.step-card:nth-child(4),
+.feature-card:nth-child(4),
+.benefit-card:nth-child(4) {
+  animation: floatGentleA 5.4s ease-in-out infinite 1.2s;
+}
+
+.feature-card:nth-child(5) {
+  animation: floatGentleB 6.1s ease-in-out infinite 0.6s;
+}
+
+.hero-visual {
+  animation: floatGentleA 6.2s ease-in-out infinite;
+}
+
+.cta-box {
+  animation: floatGentleB 6.5s ease-in-out infinite;
+}
+
+/* FREEZE ON HOVER (User requirement) */
+.step-card:hover,
+.feature-card:hover,
+.benefit-card:hover,
+.hero-visual:hover,
+.cta-box:hover {
+  animation-play-state: paused !important;
+  transform: translateY(-8px) scale(1.02) !important;
+  border-color: var(--text) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28) !important;
+}
+
+/* ==========================================================================
+   1. HERO SECTION
+   ========================================================================== */
+.hero-section {
+  padding: 64px 0 72px 0;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--lock-b);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background-color: var(--panel);
+  margin-bottom: 20px;
+}
+
+.hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--ok);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 46px;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--lock-a);
+}
+
+.hero-description {
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 32px;
+  max-width: 540px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.hero-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-meta-item strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Hero Visual Preview */
+.hero-visual {
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  position: relative;
+  overflow: hidden;
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 300ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 300ms ease;
+}
+
+.hero-visual-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+
+.hero-visual-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.hero-visual-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--line);
+}
+
+.hero-diagram-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diagram-thread-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.diagram-thread-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  width: 70px;
+  color: var(--muted);
+}
+
+.diagram-track {
+  flex: 1;
+  height: 28px;
+  background-color: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.diagram-block {
+  height: 20px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  color: var(--bg);
+  font-weight: 500;
+  user-select: none;
+}
+
+.diagram-block.lock-a {
+  background-color: var(--lock-a);
+  width: 38%;
+}
+
+.diagram-block.lock-b {
+  background-color: var(--lock-b);
+  width: 42%;
+}
+
+.diagram-block.wait {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--panel),
+    var(--panel) 4px,
+    var(--danger) 4px,
+    var(--danger) 8px
+  );
+  border: 1px solid var(--danger);
+  width: 32%;
+  color: var(--danger);
+  background-color: transparent;
+}
+
+.hero-visual-footer {
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   2. HOW IT WORKS SECTION
+   ========================================================================== */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.step-card {
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 300ms ease, box-shadow 300ms ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.step-card-num {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--lock-b);
+  border: 1px solid var(--line);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.step-card-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--lock-a);
+}
+
+.step-card-title {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.step-card-desc {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   3. FEATURES SECTION
+   ========================================================================== */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.feature-card {
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 300ms ease, box-shadow 300ms ease;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.09);
+}
+
+.feature-card.span-2 {
+  grid-column: span 2;
+}
+
+.feature-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lock-a);
+}
+
+.feature-card-title {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.feature-card-desc {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.feature-preview-box {
+  background-color: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  overflow: hidden;
+}
+
+/* Mini Graph Visual in Feature Card */
+.mini-cycle-graph {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 0;
+}
+
+.mini-node {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--lock-a);
+  background-color: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.mini-node.danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.mini-edge {
+  flex: 1;
+  height: 2px;
+  background-color: var(--danger);
+  position: relative;
+  margin: 0 8px;
+}
+
+.mini-edge::after {
+  content: "▶";
+  position: absolute;
+  right: -4px;
+  top: -6px;
+  font-size: 8px;
+  color: var(--danger);
+}
+
+/* ==========================================================================
+   4. WHO IT'S FOR / BENEFITS SECTION
+   ========================================================================== */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.benefit-card {
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 300ms ease, box-shadow 300ms ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.benefit-role {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--lock-b);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.benefit-title {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.benefit-text {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   5. CALL TO ACTION BLOCK
+   ========================================================================== */
+.cta-section {
+  padding: 64px 0 0 0;
+  border-bottom: none;
+}
+
+.cta-box {
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 48px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 300ms ease, box-shadow 300ms ease;
+}
+
+.cta-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--text);
+  max-width: 600px;
+  line-height: 1.25;
+}
+
+.cta-subtitle {
+  font-size: var(--text-base);
+  color: var(--muted);
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+.cta-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT (Mobile & Tablet)
+   ========================================================================== */
+@media (max-width: 960px) {
+  .hero-section {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  
+  .steps-grid,
+  .features-grid,
+  .benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .feature-card.span-2 {
+    grid-column: span 2;
+  }
+
+  .overview-nav {
+    padding: 0 16px;
+  }
+
+  .overview-nav-links {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .steps-grid,
+  .features-grid,
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-card.span-2 {
+    grid-column: span 1;
+  }
+
+  .hero-title {
+    font-size: 34px;
+  }
+
+  .cta-title {
+    font-size: 28px;
+  }
+
+  .overview-nav {
+    padding: 0 12px;
+  }
+
+  .landing-main {
+    padding: 0 16px 60px 16px;
+  }
+}
+
+/* PREFERS-REDUCED-MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .step-card,
+  .feature-card,
+  .benefit-card,
+  .hero-visual,
+  .cta-box {
+    animation: none !important;
+  }
+}

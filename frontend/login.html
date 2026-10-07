@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="graphite">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In / Sign Up · SchedSim Lens</title>
+    <meta name="description" content="Log in or create an account for SchedSim Lens to analyze and visualize concurrent Python execution schedules.">
+
+    <!-- Google Fonts: Newsreader (Display), IBM Plex Sans (UI), IBM Plex Mono (Code/Labels) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS Tokens, Base, Components, Auth, Mascot -->
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/mascot.css">
+</head>
+
+<body>
+    <div class="auth-page-wrapper">
+        <!-- Auth Header -->
+        <header class="auth-header">
+            <div class="auth-header-left">
+                <a href="overview.html" class="app-title" style="text-decoration: none;">
+                    <span>SCHEDSIM LENS</span>
+                    <span class="app-title-tag">CONCURRENCY ANALYZER</span>
+                </a>
+            </div>
+
+            <div class="header-right">
+                <a href="overview.html" class="btn btn-sm btn-text">← Back to Overview</a>
+                <button id="btn-theme-toggle" class="btn-theme-toggle" aria-label="Toggle Theme">
+                    Theme: Graphite
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Form Area -->
+        <main class="auth-main-container">
+            <div class="auth-card">
+                <!-- Mascot Welcoming Header -->
+                <div class="auth-mascot-header">
+                    <div id="auth-mascot-avatar" class="auth-mascot-avatar" aria-hidden="true"></div>
+                    <div class="auth-mascot-bubble">
+                        <span id="auth-mascot-speaker" class="auth-mascot-speaker">Prof. Pip · Welcome</span>
+                        <span id="auth-mascot-msg">Log in to resume your concurrency simulations and inspect schedules.</span>
+                    </div>
+                </div>
+
+                <!-- Auth Tabs Switcher -->
+                <div class="auth-tabs-nav" role="tablist" aria-label="Authentication Options">
+                    <button id="tab-btn-login" class="auth-tab-btn active" role="tab" aria-selected="true" aria-controls="form-login">
+                        Log In
+                    </button>
+                    <button id="tab-btn-signup" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="form-signup">
+                        Create Account
+                    </button>
+                </div>
+
+                <!-- Global Alert Banner -->
+                <div id="auth-banner" class="auth-banner-notice" role="alert"></div>
+
+                <!-- 1. LOG IN FORM -->
+                <form id="form-login" class="auth-form active" novalidate>
+                    <div class="form-group">
+                        <label for="login-email" class="form-label">Email Address</label>
+                        <input type="email" id="login-email" class="input-text" placeholder="student@example.com" autocomplete="email" required />
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label for="login-password" class="form-label">Password</label>
+                            <a id="link-forgot-pwd" class="forgot-pwd-link" tabindex="0">Forgot password?</a>
+                        </div>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="login-password" class="input-text" placeholder="••••••••" autocomplete="current-password" required />
+                            <button type="button" class="btn-toggle-password" data-target="login-password" aria-label="Toggle password visibility">SHOW</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-size: 13px; margin-top: 8px;">
+                        Log In
+                    </button>
+
+                    <div class="auth-footer-text">
+                        Don't have an account yet? <a id="link-to-signup">Sign up here</a>
+                    </div>
+                </form>
+
+                <!-- 2. CREATE ACCOUNT FORM -->
+                <form id="form-signup" class="auth-form" novalidate>
+                    <div class="form-group">
+                        <label for="signup-name" class="form-label">Full Name <span style="color: var(--muted); font-size: 10px;">(Optional)</span></label>
+                        <input type="text" id="signup-name" class="input-text" placeholder="Alex Turing" autocomplete="name" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-email" class="form-label">Email Address</label>
+                        <input type="email" id="signup-email" class="input-text" placeholder="student@university.edu" autocomplete="email" required />
+                        <span id="signup-email-error" class="form-input-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-password" class="form-label">Password <span style="color: var(--muted); font-size: 10px;">(min 8 chars)</span></label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="signup-password" class="input-text" placeholder="At least 8 characters" autocomplete="new-password" required />
+                            <button type="button" class="btn-toggle-password" data-target="signup-password" aria-label="Toggle password visibility">SHOW</button>
+                        </div>
+                        <span id="signup-pwd-error" class="form-input-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-confirm-password" class="form-label">Confirm Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="signup-confirm-password" class="input-text" placeholder="Re-enter your password" autocomplete="new-password" required />
+                            <button type="button" class="btn-toggle-password" data-target="signup-confirm-password" aria-label="Toggle password visibility">SHOW</button>
+                        </div>
+                        <span id="signup-confirm-error" class="form-input-error"></span>
+                    </div>
+
+                    <button type="submit" id="btn-signup-submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-size: 13px; margin-top: 8px;">
+                        Create Account
+                    </button>
+
+                    <div class="auth-footer-text">
+                        Already have an account? <a id="link-to-login">Log in here</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <!-- Footer Strip -->
+        <footer class="footer-strip">
+            <div class="footer-left">
+                <span>SCHEDSIM LENS AUTHENTICATION</span>
+            </div>
+            <div class="footer-right">
+                <a href="overview.html" style="color: var(--muted); text-decoration: none;">Overview</a>
+                <span>·</span>
+                <span>Protected Sessions</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Login Controller -->
+    <script type="module" src="js/login.js"></script>
+</body>
+
+</html>

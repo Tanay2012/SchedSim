@@ -1,0 +1,239 @@
+{
+  "extract": {
+    "program": {
+      "language": "python",
+      "threads": [
+        {
+          "id": "T1",
+          "name": "worker_1",
+          "ops": [
+            { "line": 5, "op": "read", "target": "counter", "value": 0 },
+            { "line": 6, "op": "write", "target": "counter", "value": 1 }
+          ]
+        },
+        {
+          "id": "T2",
+          "name": "worker_2",
+          "ops": [
+            { "line": 10, "op": "read", "target": "counter", "value": 0 },
+            { "line": 11, "op": "write", "target": "counter", "value": 1 }
+          ]
+        }
+      ],
+      "locks": [],
+      "shared_vars": ["counter"],
+      "unsupported_constructs": [],
+      "confidence": 0.95
+    },
+    "transcription": [
+      "# Shared counter race condition",
+      "counter = 0",
+      "",
+      "def worker_1():",
+      "    global counter",
+      "    temp = counter  # read",
+      "    counter = temp + 1  # write",
+      "",
+      "def worker_2():",
+      "    global counter",
+      "    temp = counter  # read",
+      "    counter = temp + 1  # write"
+    ],
+    "detected_boxes": [
+      { "line": 5, "bbox": [0.05, 0.38, 0.45, 0.06] },
+      { "line": 6, "bbox": [0.05, 0.45, 0.50, 0.06] },
+      { "line": 10, "bbox": [0.05, 0.72, 0.45, 0.06] },
+      { "line": 11, "bbox": [0.05, 0.79, 0.50, 0.06] }
+    ]
+  },
+  "analyze": {
+    "verdict": "race",
+    "schedules_checked": 64,
+    "schedule": [
+      {
+        "step": 0,
+        "thread": "T1",
+        "op": "read",
+        "target": "counter",
+        "value": 0,
+        "line": 6,
+        "status": "ok",
+        "locks": {},
+        "thread_state": { "T1": "running", "T2": "ready" },
+        "mem": { "counter": 0 },
+        "reg": { "T1": 0 }
+      },
+      {
+        "step": 1,
+        "thread": "T2",
+        "op": "read",
+        "target": "counter",
+        "value": 0,
+        "line": 11,
+        "status": "ok",
+        "locks": {},
+        "thread_state": { "T1": "ready", "T2": "running" },
+        "mem": { "counter": 0 },
+        "reg": { "T2": 0 }
+      },
+      {
+        "step": 2,
+        "thread": "T1",
+        "op": "write",
+        "target": "counter",
+        "value": 1,
+        "line": 7,
+        "status": "ok",
+        "locks": {},
+        "thread_state": { "T1": "running", "T2": "ready" },
+        "mem": { "counter": 1 },
+        "reg": { "T1": 0 }
+      },
+      {
+        "step": 3,
+        "thread": "T2",
+        "op": "write",
+        "target": "counter",
+        "value": 1,
+        "line": 12,
+        "status": "ok",
+        "locks": {},
+        "thread_state": { "T1": "ready", "T2": "running" },
+        "mem": { "counter": 1 },
+        "reg": { "T2": 0 }
+      }
+    ],
+    "stuck": [],
+    "cycle": null,
+    "race": {
+      "variable": "counter",
+      "expected": 2,
+      "possible": [1, 2],
+      "overlap_steps": [0, 1]
+    }
+  },
+  "explain": {
+    "plain_explanation": "Both threads read counter=0 concurrently before either writes. The second write clobbers the first increment.",
+    "why_it_happens": "Non-atomic read-modify-write without mutual exclusion.",
+    "key_concept": "Data Race & Lost Update",
+    "fix_strategy": "mutex_protection",
+    "fixed_code": [
+      "# Protected counter with Lock",
+      "import threading",
+      "counter = 0",
+      "lock = threading.Lock()",
+      "",
+      "def worker_1():",
+      "    global counter",
+      "    with lock:",
+      "        counter += 1",
+      "",
+      "def worker_2():",
+      "    global counter",
+      "    with lock:",
+      "        counter += 1"
+    ],
+    "verified": true,
+    "fixed_analysis": {
+      "verdict": "ok",
+      "schedules_checked": 64,
+      "schedule": [
+        {
+          "step": 0,
+          "thread": "T1",
+          "op": "acquire",
+          "target": "lock",
+          "line": 8,
+          "status": "ok",
+          "locks": { "lock": "T1" },
+          "thread_state": { "T1": "running", "T2": "ready" },
+          "mem": { "counter": 0 }
+        },
+        {
+          "step": 1,
+          "thread": "T1",
+          "op": "read",
+          "target": "counter",
+          "value": 0,
+          "line": 9,
+          "status": "ok",
+          "locks": { "lock": "T1" },
+          "thread_state": { "T1": "running", "T2": "ready" },
+          "mem": { "counter": 0 }
+        },
+        {
+          "step": 2,
+          "thread": "T1",
+          "op": "write",
+          "target": "counter",
+          "value": 1,
+          "line": 9,
+          "status": "ok",
+          "locks": { "lock": "T1" },
+          "thread_state": { "T1": "running", "T2": "ready" },
+          "mem": { "counter": 1 }
+        },
+        {
+          "step": 3,
+          "thread": "T1",
+          "op": "release",
+          "target": "lock",
+          "line": 8,
+          "status": "ok",
+          "locks": { "lock": null },
+          "thread_state": { "T1": "running", "T2": "ready" },
+          "mem": { "counter": 1 }
+        },
+        {
+          "step": 4,
+          "thread": "T2",
+          "op": "acquire",
+          "target": "lock",
+          "line": 13,
+          "status": "ok",
+          "locks": { "lock": "T2" },
+          "thread_state": { "T1": "ready", "T2": "running" },
+          "mem": { "counter": 1 }
+        },
+        {
+          "step": 5,
+          "thread": "T2",
+          "op": "read",
+          "target": "counter",
+          "value": 1,
+          "line": 14,
+          "status": "ok",
+          "locks": { "lock": "T2" },
+          "thread_state": { "T1": "ready", "T2": "running" },
+          "mem": { "counter": 1 }
+        },
+        {
+          "step": 6,
+          "thread": "T2",
+          "op": "write",
+          "target": "counter",
+          "value": 2,
+          "line": 14,
+          "status": "ok",
+          "locks": { "lock": "T2" },
+          "thread_state": { "T1": "ready", "T2": "running" },
+          "mem": { "counter": 2 }
+        },
+        {
+          "step": 7,
+          "thread": "T2",
+          "op": "release",
+          "target": "lock",
+          "line": 13,
+          "status": "ok",
+          "locks": { "lock": null },
+          "thread_state": { "T1": "ready", "T2": "running" },
+          "mem": { "counter": 2 }
+        }
+      ],
+      "stuck": [],
+      "cycle": null,
+      "race": null
+    }
+  }
+}
