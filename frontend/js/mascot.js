@@ -50,9 +50,14 @@ export class MascotController {
     this.currentSectionId = null;
     this.isMinimized = false;
     this.isDismissed = false;
+    this.currentCornerIndex = 0;
     this.containerEl = null;
     this.bubbleEl = null;
     this.bodyEl = null;
+    this.isDragging = false;
+    this.hasMovedDuringDrag = false;
+    this.dragOffset = { x: 0, y: 0 };
+    this.dragStartPos = { x: 0, y: 0 };
 
     this.init();
   }
@@ -66,7 +71,118 @@ export class MascotController {
     aiAgent.init();
 
     this.createDOM();
+    this.loadSavedPosition();
+    this.setupDragEvents();
     this.setupScrollObserver();
+  }
+
+  getCornerPositions() {
+    const isApp = window.location.pathname.includes('app.html');
+    const bottomSafe = isApp ? '92px' : '28px';
+    const topSafe = '64px';
+    const sideSafe = '28px';
+
+    return [
+      { id: 'bottom-right', bottom: bottomSafe, right: sideSafe, top: '', left: '', isTop: false, isLeft: false },
+      { id: 'bottom-left', bottom: bottomSafe, left: sideSafe, top: '', right: '', isTop: false, isLeft: true },
+      { id: 'top-left', top: topSafe, left: sideSafe, bottom: '', right: '', isTop: true, isLeft: true },
+      { id: 'top-right', top: topSafe, right: sideSafe, bottom: '', left: '', isTop: true, isLeft: false }
+    ];
+  }
+
+  loadSavedPosition() {
+    try {
+      const savedCorner = localStorage.getItem('schedsim_pip_corner');
+      if (savedCorner !== null) {
+        const idx = parseInt(savedCorner, 10);
+        if (!isNaN(idx) && idx >= 0 && idx < 4) {
+          this.currentCornerIndex = idx;
+          this.applyCornerPosition(idx, false);
+          return;
+        }
+      }
+
+      const savedCustom = localStorage.getItem('schedsim_pip_custom_pos');
+      if (savedCustom) {
+        const pos = JSON.parse(savedCustom);
+        if (pos && typeof pos.x === 'number' && typeof pos.y === 'number') {
+          this.applyAbsolutePosition(pos.x, pos.y, false);
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // Default: Safe bottom-right
+    this.applyCornerPosition(0, false);
+  }
+
+  applyCornerPosition(index, animate = true) {
+    const corners = this.getCornerPositions();
+    const corner = corners[index % corners.length];
+    this.currentCornerIndex = index % corners.length;
+
+    if (!animate) {
+      this.containerEl.style.transition = 'none';
+    } else {
+      this.containerEl.style.transition = 'top 300ms ease, bottom 300ms ease, left 300ms ease, right 300ms ease, transform 300ms ease';
+    }
+
+    this.containerEl.style.top = corner.top;
+    this.containerEl.style.bottom = corner.bottom;
+    this.containerEl.style.left = corner.left;
+    this.containerEl.style.right = corner.right;
+
+    this.updateBubbleDirection(corner.isTop, corner.isLeft);
+
+    if (!animate) {
+      setTimeout(() => {
+        if (this.containerEl) this.containerEl.style.transition = '';
+      }, 50);
+    }
+  }
+
+  applyAbsolutePosition(x, y, animate = false) {
+    const width = 84;
+    const height = 84;
+    const maxX = Math.max(10, window.innerWidth - width - 12);
+    const maxY = Math.max(10, window.innerHeight - height - 12);
+
+    const clampedX = Math.min(Math.max(12, x), maxX);
+    const clampedY = Math.min(Math.max(12, y), maxY);
+
+    if (!animate) {
+      this.containerEl.style.transition = 'none';
+    }
+
+    this.containerEl.style.top = `${clampedY}px`;
+    this.containerEl.style.left = `${clampedX}px`;
+    this.containerEl.style.bottom = 'auto';
+    this.containerEl.style.right = 'auto';
+
+    const isTop = clampedY < window.innerHeight * 0.38;
+    const isLeft = clampedX < window.innerWidth * 0.45;
+    this.updateBubbleDirection(isTop, isLeft);
+
+    if (!animate) {
+      setTimeout(() => {
+        if (this.containerEl) this.containerEl.style.transition = '';
+      }, 50);
+    }
+  }
+
+  updateBubbleDirection(isTop, isLeft) {
+    if (!this.containerEl) return;
+    this.containerEl.classList.toggle('bubble-below', isTop);
+    this.containerEl.classList.toggle('bubble-align-left', isLeft);
+  }
+
+  cycleCorner() {
+    this.currentCornerIndex = (this.currentCornerIndex + 1) % 4;
+    this.applyCornerPosition(this.currentCornerIndex, true);
+    try {
+      localStorage.setItem('schedsim_pip_corner', this.currentCornerIndex.toString());
+      localStorage.removeItem('schedsim_pip_custom_pos');
+    } catch (e) {}
   }
 
   /**
@@ -133,7 +249,7 @@ export class MascotController {
     return `
       <svg class="mascot-svg" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Prof. Pip the Teacher Bird">
         <!-- Shadow -->
-        <ellipse cx="45" cy="78" rx="22" ry="5" fill="rgba(0,0,0,0.18)" />
+        <ellipse cx="45" cy="78" rx="22" ry="5" fill="rgba(0,0,0,0.22)" />
 
         <!-- Feet -->
         <path d="M 37 72 L 34 78 M 37 72 L 37 78 M 37 72 L 40 78" stroke="var(--lock-b)" stroke-width="2" stroke-linecap="round"/>
@@ -214,26 +330,32 @@ export class MascotController {
     this.bubbleEl.className = 'mascot-speech-bubble';
     this.bubbleEl.innerHTML = `
       <div class="mascot-bubble-header">
-        <span class="mascot-name-tag" id="mascot-bubble-title">Prof. Pip · Guide</span>
+        <span class="mascot-name-tag" id="mascot-bubble-title">Prof. Pip · AI Tutor</span>
         <button class="mascot-bubble-close" id="btn-mascot-close-bubble" title="Dismiss speech bubble" aria-label="Dismiss message">✕</button>
       </div>
       <div class="mascot-bubble-text" id="mascot-bubble-content">
-        Hi! I'm Prof. Pip! I'll guide you through SchedSim Lens. Click me to ask any concurrency question!
+        Hi! I'm Prof. Pip! I'm your Picture-in-Picture AI Tutor. Drag me anywhere or click me to ask any concurrency question!
       </div>
       <div class="mascot-bubble-footer">
-        <a class="mascot-ask-ai-link" id="bubble-open-ai-chat">💬 Ask AI Professor Pip ➔</a>
+        <span class="mascot-pip-hint">✥ Drag freely or ⇄ Corner Hop</span>
+        <a class="mascot-ask-ai-link" id="bubble-open-ai-chat">💬 Ask AI Tutor ➔</a>
       </div>
     `;
 
     // Create Mascot Body Wrapper
     this.bodyEl = document.createElement('div');
     this.bodyEl.className = 'mascot-body-wrapper';
-    this.bodyEl.title = 'Click to open Prof. Pip AI Concurrency Tutor!';
+    this.bodyEl.title = 'Click to open AI Tutor. Drag anywhere to reposition PIP.';
     this.bodyEl.innerHTML = `
-      <div class="mascot-ai-badge">AI TUTOR</div>
-      <button class="mascot-toggle-btn" id="btn-mascot-minimize" title="Minimize / Restore mascot" aria-label="Toggle mascot">
-        ${this.isMinimized ? '▲' : '▼'}
-      </button>
+      <div class="mascot-ai-badge" title="Drag to move PIP">AI TUTOR</div>
+      <div class="mascot-pip-toolbar" id="mascot-pip-toolbar">
+        <button class="mascot-pip-btn" id="btn-mascot-minimize" title="${this.isMinimized ? 'Restore mascot' : 'Minimize to dock'}" aria-label="Toggle minimize">
+          ${this.isMinimized ? '▲' : '🗕'}
+        </button>
+        <button class="mascot-pip-btn" id="btn-mascot-corner" title="Hop to next corner (PIP)" aria-label="Cycle corner">
+          ⇄
+        </button>
+      </div>
       <div id="mascot-svg-holder">${this.getBirdSvg('wave')}</div>
     `;
 
@@ -257,13 +379,102 @@ export class MascotController {
       this.toggleMinimize();
     });
 
-    // Clicking mascot opens AI Chat
-    this.bodyEl.addEventListener('click', () => {
+    this.bodyEl.querySelector('#btn-mascot-corner').addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.cycleCorner();
+    });
+
+    // Clicking mascot (when not dragging) opens AI Chat
+    this.bodyEl.addEventListener('click', (e) => {
+      // If user just dragged, ignore click
+      if (this.hasMovedDuringDrag) {
+        this.hasMovedDuringDrag = false;
+        return;
+      }
+      if (e.target.closest('.mascot-pip-btn')) return;
+
       if (this.isMinimized) {
         this.toggleMinimize();
       } else {
         aiAgent.open();
       }
+    });
+  }
+
+  setupDragEvents() {
+    const onStart = (clientX, clientY) => {
+      this.isDragging = true;
+      this.hasMovedDuringDrag = false;
+      this.dragStartPos = { x: clientX, y: clientY };
+
+      const rect = this.containerEl.getBoundingClientRect();
+      this.dragOffset = {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+
+      this.containerEl.classList.add('is-dragging');
+    };
+
+    const onMove = (clientX, clientY) => {
+      if (!this.isDragging) return;
+
+      const dist = Math.hypot(clientX - this.dragStartPos.x, clientY - this.dragStartPos.y);
+      if (dist > 5) {
+        this.hasMovedDuringDrag = true;
+      }
+
+      const newX = clientX - this.dragOffset.x;
+      const newY = clientY - this.dragOffset.y;
+      this.applyAbsolutePosition(newX, newY, false);
+    };
+
+    const onEnd = () => {
+      if (!this.isDragging) return;
+      this.isDragging = false;
+      this.containerEl.classList.remove('is-dragging');
+
+      if (this.hasMovedDuringDrag) {
+        const rect = this.containerEl.getBoundingClientRect();
+        try {
+          localStorage.setItem('schedsim_pip_custom_pos', JSON.stringify({ x: rect.left, y: rect.top }));
+          localStorage.removeItem('schedsim_pip_corner');
+        } catch (e) {}
+      }
+    };
+
+    // Mouse Listeners
+    this.bodyEl.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.mascot-pip-btn')) return;
+      onStart(e.clientX, e.clientY);
+
+      const mouseMoveHandler = (ev) => onMove(ev.clientX, ev.clientY);
+      const mouseUpHandler = () => {
+        onEnd();
+        window.removeEventListener('mousemove', mouseMoveHandler);
+        window.removeEventListener('mouseup', mouseUpHandler);
+      };
+
+      window.addEventListener('mousemove', mouseMoveHandler);
+      window.addEventListener('mouseup', mouseUpHandler);
+    });
+
+    // Touch Listeners
+    this.bodyEl.addEventListener('touchstart', (e) => {
+      if (e.target.closest('.mascot-pip-btn')) return;
+      if (e.touches.length === 1) {
+        onStart(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (this.isDragging && e.touches.length === 1) {
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      onEnd();
     });
   }
 
@@ -279,9 +490,16 @@ export class MascotController {
       return;
     }
 
+    // Only apply section fly positions if user hasn't set a custom PIP drag position
+    if (localStorage.getItem('schedsim_pip_custom_pos')) {
+      return;
+    }
+
     this.containerEl.classList.add('flying');
     if (pos.bottom) this.containerEl.style.bottom = pos.bottom;
     if (pos.right) this.containerEl.style.right = pos.right;
+    if (pos.top) this.containerEl.style.top = pos.top;
+    if (pos.left) this.containerEl.style.left = pos.left;
 
     setTimeout(() => {
       this.containerEl.classList.remove('flying');
@@ -314,8 +532,8 @@ export class MascotController {
     this.containerEl.classList.toggle('minimized', this.isMinimized);
     const minBtn = this.containerEl.querySelector('#btn-mascot-minimize');
     if (minBtn) {
-      minBtn.textContent = this.isMinimized ? '▲' : '▼';
-      minBtn.title = this.isMinimized ? 'Restore mascot' : 'Minimize mascot';
+      minBtn.innerHTML = this.isMinimized ? '▲' : '🗕';
+      minBtn.title = this.isMinimized ? 'Restore mascot' : 'Minimize to dock';
     }
     try {
       localStorage.setItem('schedsim_mascot_minimized', this.isMinimized);
@@ -349,3 +567,4 @@ export class MascotController {
     sections.forEach(s => observer.observe(s));
   }
 }
+

@@ -67,7 +67,13 @@ class OverviewPage {
   updateThemeButtonLabel(theme) {
     const btn = document.getElementById('btn-theme-toggle');
     if (btn) {
-      btn.textContent = theme === 'graphite' ? 'Theme: Graphite' : 'Theme: Paper';
+      const isDark = theme === 'graphite';
+      btn.innerHTML = `
+        <span class="theme-toggle-icon" aria-hidden="true">${isDark ? '🌙' : '☀️'}</span>
+        <span class="theme-toggle-text">${isDark ? 'Graphite' : 'Paper'}</span>
+      `;
+      btn.setAttribute('aria-label', isDark ? 'Switch to Light mode (Paper)' : 'Switch to Dark mode (Graphite)');
+      btn.title = isDark ? 'Switch to Light mode (Paper)' : 'Switch to Dark mode (Graphite)';
     }
   }
 

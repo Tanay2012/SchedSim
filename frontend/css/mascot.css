@@ -1,23 +1,31 @@
 /* ==========================================================================
    MASCOT: PROF. PIP (THE TEACHER BIRD & AI CONCURRENCY AGENT)
-   Smooth gliding/flying animations, interactive expressions, and AI Chat Modal
+   Picture-In-Picture (PIP) floating mode, free dragging, non-overlapping safe zones
    ========================================================================== */
 
 .mascot-container {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 92px;
+  right: 28px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   pointer-events: none;
-  transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1), 
-              top 600ms cubic-bezier(0.2, 0.8, 0.2, 1), 
-              bottom 600ms cubic-bezier(0.2, 0.8, 0.2, 1), 
-              right 600ms cubic-bezier(0.2, 0.8, 0.2, 1), 
-              left 600ms cubic-bezier(0.2, 0.8, 0.2, 1), 
+  touch-action: none;
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), 
               opacity 300ms ease;
+}
+
+/* While dragging, disable transition for 60fps tracking */
+.mascot-container.is-dragging {
+  transition: none !important;
+  user-select: none;
+}
+
+.mascot-container.is-dragging .mascot-body-wrapper {
+  cursor: grabbing !important;
+  transform: scale(1.06) rotate(-2deg);
 }
 
 .mascot-container * {
@@ -30,7 +38,7 @@
     transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-8px) rotate(1.5deg);
+    transform: translateY(-6px) rotate(1.5deg);
   }
 }
 
@@ -46,19 +54,21 @@
 
 .mascot-body-wrapper {
   position: relative;
-  width: 84px;
-  height: 84px;
-  cursor: pointer;
+  width: 82px;
+  height: 82px;
+  cursor: grab;
   display: flex;
   align-items: center;
   justify-content: center;
   animation: mascotGentleFloat 4s ease-in-out infinite;
-  transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 200ms ease;
   user-select: none;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.35));
 }
 
 .mascot-body-wrapper:hover {
-  transform: scale(1.1) translateY(-4px);
+  transform: scale(1.08) translateY(-3px);
+  filter: drop-shadow(0 12px 26px rgba(0, 0, 0, 0.45));
 }
 
 .mascot-container.flying .mascot-body-wrapper {
@@ -73,10 +83,9 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.28));
 }
 
-/* AI Assistant Trigger Tag */
+/* AI Assistant Trigger Tag / PIP Badge */
 .mascot-ai-badge {
   position: absolute;
   top: -6px;
@@ -84,22 +93,70 @@
   background-color: var(--lock-b);
   color: var(--bg);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
   padding: 2px 6px;
   border-radius: 10px;
   border: 1px solid var(--line);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
   display: flex;
   align-items: center;
   gap: 3px;
+  cursor: grab;
   animation: pulseAiBadge 2.5s ease-in-out infinite;
 }
 
 @keyframes pulseAiBadge {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  50% { transform: scale(1.06); }
+}
+
+/* PIP Action Toolbar (Corner Hop, Minimize, Drag Grip) */
+.mascot-pip-toolbar {
+  position: absolute;
+  top: -12px;
+  left: -20px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  z-index: 10;
+  background: var(--panel);
+  padding: 2px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.mascot-container:hover .mascot-pip-toolbar,
+.mascot-container.minimized .mascot-pip-toolbar {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mascot-pip-btn {
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.mascot-pip-btn:hover {
+  color: var(--text);
+  background-color: var(--active-line-bg);
+  transform: scale(1.15);
 }
 
 /* Speech Bubble */
@@ -110,13 +167,15 @@
   padding: 12px 14px;
   width: 270px;
   max-width: calc(100vw - 48px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
-  margin-bottom: 12px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  margin-bottom: 10px;
   position: relative;
   transition: opacity 250ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
   transform-origin: bottom right;
+  backdrop-filter: blur(8px);
 }
 
+/* Speech bubble arrow defaults (bottom right) */
 .mascot-speech-bubble::after {
   content: "";
   position: absolute;
@@ -128,6 +187,39 @@
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   transform: rotate(45deg);
+}
+
+/* Dynamic Bubble Orientations */
+.mascot-container.bubble-below {
+  flex-direction: column-reverse;
+  align-items: flex-end;
+}
+.mascot-container.bubble-below .mascot-speech-bubble {
+  margin-bottom: 0;
+  margin-top: 10px;
+  transform-origin: top right;
+}
+.mascot-container.bubble-below .mascot-speech-bubble::after {
+  bottom: auto;
+  top: -6px;
+  border-right: none;
+  border-bottom: none;
+  border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+}
+
+.mascot-container.bubble-align-left {
+  align-items: flex-start;
+}
+.mascot-container.bubble-align-left .mascot-speech-bubble {
+  transform-origin: bottom left;
+}
+.mascot-container.bubble-align-left .mascot-speech-bubble::after {
+  right: auto;
+  left: 28px;
+}
+.mascot-container.bubble-below.bubble-align-left .mascot-speech-bubble {
+  transform-origin: top left;
 }
 
 .mascot-speech-bubble.hidden {
@@ -194,7 +286,14 @@
   padding-top: 6px;
   border-top: 1px solid var(--line);
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mascot-pip-hint {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--muted);
 }
 
 .mascot-ask-ai-link {
@@ -210,52 +309,20 @@
   text-decoration: underline;
 }
 
-/* Mascot Toggle / Dock Button */
-.mascot-toggle-btn {
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  width: 22px;
-  height: 22px;
-  background-color: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 200ms ease, background-color 150ms ease, color 150ms ease;
-}
-
-.mascot-container:hover .mascot-toggle-btn {
-  opacity: 1;
-}
-
-.mascot-toggle-btn:hover {
-  color: var(--text);
-  background-color: var(--active-line-bg);
-}
-
 /* Minimized Docked State */
 .mascot-container.minimized .mascot-speech-bubble {
   display: none !important;
 }
 
 .mascot-container.minimized .mascot-body-wrapper {
-  width: 46px;
-  height: 46px;
-  opacity: 0.85;
+  width: 44px;
+  height: 44px;
+  opacity: 0.9;
   animation: none;
 }
 
-.mascot-container.minimized .mascot-toggle-btn {
-  opacity: 1;
-  top: -4px;
-  left: -4px;
+.mascot-container.minimized .mascot-ai-badge {
+  display: none;
 }
 
 /* ==========================================================================
